@@ -32,6 +32,10 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     }
     
     override func viewDidLoad() {
+        var mutableString = NSMutableAttributedString(string: "Speech Recognition OFF", attributes: [NSAttributedString.Key.font: UIFont(name: "Georgia", size: 12.0)!])
+        mutableString.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.red, range: NSRange(location: 2, length: 4))
+        transcriptionStatusLabel.attributedText = mutableString
+        
         super.viewDidLoad()
         self.requestSpeechAuthorization()
     }
@@ -39,14 +43,8 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     @IBAction func startButtonTapped(_ sender: UIButton) {
         if recording == false {
             self.recordAndRecognizeSpeech()
-            recording = true
-            transcriptionStatusLabel.text = "Speech Recognition ON"
         } else {
-            audioEngine.stop()
-            recognitionTask?.cancel()
-            self.node.removeTap(onBus: 0)
-            recording = false
-            transcriptionStatusLabel.text = "Speech Recognition OFF"
+            self.cancelTranscription()
         }
     }
     
@@ -68,6 +66,9 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
         } catch {
             return print(error)
         }
+        
+        transcriptionStatusLabel.text = "Speech Recognition ON"
+        recording = true
         
         guard let myRecognizer = SFSpeechRecognizer() else {
             return
@@ -94,6 +95,15 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
                 print(error)
             }
         })
+    }
+    
+    func cancelTranscription() {
+        audioEngine.stop()
+        request.endAudio()
+        recognitionTask?.cancel()
+        self.node.removeTap(onBus: 0)
+        recording = false
+        transcriptionStatusLabel.text = "Speech Recognition OFF"
     }
     
     func checkForColorsSaid(resultString: String) {
@@ -144,7 +154,7 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
                 case .notDetermined:
                     self.startButton.isEnabled = false
                     self.detectedTextLabel.text = "Speech recognition not yet authorized"
-                @unknown default:
+                default:
                     print("Error requesting authorization to initiate speech recognition")
                 }
             }
