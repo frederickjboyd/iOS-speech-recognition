@@ -24,6 +24,12 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     let request = SFSpeechAudioBufferRecognitionRequest()
     var recognitionTask: SFSpeechRecognitionTask?
     var recording = false
+    var node: AVAudioInputNode
+    
+    required init?(coder aDecoder: NSCoder) {
+        self.node = audioEngine.inputNode
+        super.init(coder: aDecoder)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,6 +44,7 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
         } else {
             audioEngine.stop()
             recognitionTask?.cancel()
+            self.node.removeTap(onBus: 0)
             recording = false
             transcriptionStatusLabel.text = "Speech Recognition OFF"
         }
@@ -48,10 +55,10 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     }
     
     func recordAndRecognizeSpeech() {
-        //guard let node = audioEngine.inputNode else { return }
-        let node = audioEngine.inputNode
-        let recordingFormat = node.outputFormat(forBus: 0)
-        node.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+//        guard let node = audioEngine.inputNode else { return }
+//        node = audioEngine.inputNode
+        let recordingFormat = self.node.outputFormat(forBus: 0)
+        self.node.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             self.request.append(buffer)
         }
         
@@ -71,6 +78,10 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
         
         recognitionTask = speechRecognizer?.recognitionTask(with: request, resultHandler: {result, error in
             if let result = result {
+                let isFinal = result.isFinal
+                if isFinal {
+                    print("60 second limit probably reached")
+                }
                 let bestString = result.bestTranscription.formattedString
                 self.detectedTextLabel.text = bestString
                 var lastString: String = ""
