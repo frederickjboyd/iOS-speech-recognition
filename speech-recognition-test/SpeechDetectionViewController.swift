@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  SpeechDetectionViewController.swift
 //  speech-recognition-test
 //
 //  Created by jam3 on 2019-06-11.
@@ -9,13 +9,6 @@
 import UIKit
 import Speech
 
-//class ViewController: UIViewController {
-//
-//
-//
-//
-//}
-
 class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegate {
     //@IBOutlet weak var detectedTextLabel: UILabel!
     //@IBOutlet weak var colorView: UIView!
@@ -23,22 +16,35 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     
     @IBOutlet weak var detectedTextLabel: UILabel!
     @IBOutlet weak var startButton: UIButton!
+    @IBOutlet weak var transcriptionStatusLabel: UILabel!
     
     // Declaring speech recognition variables
     let audioEngine = AVAudioEngine()
     let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
     let request = SFSpeechAudioBufferRecognitionRequest()
     var recognitionTask: SFSpeechRecognitionTask?
-    let running = false
+    var recording = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.requestSpeechAuthorization()
-        // Do any additional setup after loading the view.
     }
     
     @IBAction func startButtonTapped(_ sender: UIButton) {
-        self.recordAndRecognizeSpeech()
+        if recording == false {
+            self.recordAndRecognizeSpeech()
+            recording = true
+            transcriptionStatusLabel.text = "Speech Recognition ON"
+        } else {
+            audioEngine.stop()
+            recognitionTask?.cancel()
+            recording = false
+            transcriptionStatusLabel.text = "Speech Recognition OFF"
+        }
+    }
+    
+    @IBAction func clearText(_ sender: Any) {
+        self.detectedTextLabel.text = ""
     }
     
     func recordAndRecognizeSpeech() {
@@ -67,14 +73,49 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
             if let result = result {
                 let bestString = result.bestTranscription.formattedString
                 self.detectedTextLabel.text = bestString
+                var lastString: String = ""
+                for segment in result.bestTranscription.segments {
+                    let indexTo = bestString.index(bestString.startIndex, offsetBy: segment.substringRange.location)
+                    lastString = bestString.substring(from: indexTo)
+                }
+                self.checkForColorsSaid(resultString: lastString)
             } else if let error = error {
                 print(error)
             }
         })
     }
     
-    func terminateSpeechRecognition() {
-        
+    func checkForColorsSaid(resultString: String) {
+        switch resultString {
+        case "red":
+            self.detectedTextLabel.backgroundColor = UIColor.red
+            self.detectedTextLabel.textColor = UIColor.black
+        case "orange":
+            self.detectedTextLabel.backgroundColor = UIColor.orange
+            self.detectedTextLabel.textColor = UIColor.black
+        case "yellow":
+            self.detectedTextLabel.backgroundColor = UIColor.yellow
+            self.detectedTextLabel.textColor = UIColor.black
+        case "green":
+            self.detectedTextLabel.backgroundColor = UIColor.green
+            self.detectedTextLabel.textColor = UIColor.black
+        case "blue":
+            self.detectedTextLabel.backgroundColor = UIColor.blue
+            self.detectedTextLabel.textColor = UIColor.black
+        case "purple":
+            self.detectedTextLabel.backgroundColor = UIColor.purple
+            self.detectedTextLabel.textColor = UIColor.black
+        case "white":
+            self.detectedTextLabel.backgroundColor = UIColor.white
+            self.detectedTextLabel.textColor = UIColor.black
+        case "gray":
+            self.detectedTextLabel.backgroundColor = UIColor.gray
+            self.detectedTextLabel.textColor = UIColor.black
+        case "black":
+            self.detectedTextLabel.backgroundColor = UIColor.black
+            self.detectedTextLabel.textColor = UIColor.white
+        default: break
+        }
     }
     
     func requestSpeechAuthorization() {
