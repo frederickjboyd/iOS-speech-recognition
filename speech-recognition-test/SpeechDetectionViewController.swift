@@ -32,7 +32,7 @@ class SpeechDetectionViewController: UIViewController, SFSpeechRecognizerDelegat
     }
     
     override func viewDidLoad() {
-        var mutableString = NSMutableAttributedString(string: "Speech Recognition OFF", attributes: [NSAttributedString.Key.font: UIFont(name: "Georgia", size: 12.0)!])
+        var mutableString = NSMutableAttributedString(string: "Speech Recognition OFF", attributes: [NSAttributedString.Key.font: UIFont(name: "HelveticaNeue", size: 16.0)!])
         mutableString.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.red, range: NSRange(location: 2, length: 4))
         transcriptionStatusLabel.attributedText = mutableString
         
